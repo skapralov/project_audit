@@ -1,4 +1,5 @@
 import io
+import time
 
 import pygsheets
 from docx import Document
@@ -68,4 +69,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as error:
+        print(error)
+    time.sleep(100)
