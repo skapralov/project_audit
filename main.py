@@ -1,6 +1,9 @@
 import io
+import re
 import time
 
+import requests
+from lxml import html
 import pygsheets
 from docx import Document
 from docx.shared import Cm
@@ -25,6 +28,7 @@ def get_data_from_sheet(wks, project_id):
     for row in wks:
         if row[0] == project_id:
             return row
+    print('project not found')
 
 
 def complete_document(data, project_id):
@@ -34,13 +38,14 @@ def complete_document(data, project_id):
         for key, value in data.items():
             if key in paragraph.text and '<<image>>' in paragraph.text:
                 paragraph.text = None
-                image = get_image_from_drive(value)
+                image = get_image_from_lightshot(value)
                 paragraph.runs[-1].add_break()
                 paragraph.runs[-1].add_picture(image, width=Cm(16.5))
             elif key in paragraph.text:
                 paragraph.text = value
 
-    document.save(f'{project_id}.docx')
+    clean_document = clear_from_tags(document)
+    clean_document.save(f'{project_id}.docx')
     print(f'saved file {project_id}.docx')
 
 
@@ -57,6 +62,28 @@ def get_image_from_drive(link):
         if done:
             print('successfully')
             return fh
+
+
+def get_image_from_lightshot(link):
+    print('get image from lightshot -- ', end='')
+    user_agents = {'User-agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:70.0) Gecko/20100101 Firefox/70.0'}
+    url = 'https://prnt.sc/vq3frj'
+    response = requests.get(url, headers=user_agents)
+    document = html.fromstring(response.content)
+    src = document.xpath('//meta[@property="og:image"]')[0].get('content')
+    response = requests.get(src)
+    image = io.BytesIO(response.content)
+    print('successfully')
+    return image
+
+
+def clear_from_tags(document):
+    for paragraph in document.paragraphs:
+        if re.search(r'<<\w{1,5}>>', paragraph.text):
+            p = paragraph._element
+            p.getparent().remove(p)
+            p._p = p._element = None
+    return document
 
 
 def main():
