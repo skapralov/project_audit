@@ -69,8 +69,7 @@ def get_image_from_drive(link):
 def get_image_from_lightshot(link):
     print('get image from lightshot -- ', end='')
     user_agents = {'User-agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:70.0) Gecko/20100101 Firefox/70.0'}
-    url = 'https://prnt.sc/vq3frj'
-    response = requests.get(url, headers=user_agents)
+    response = requests.get(link, headers=user_agents)
     document = html.fromstring(response.content)
     src = document.xpath('//meta[@property="og:image"]')[0].get('content')
     response = requests.get(src)
