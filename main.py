@@ -33,6 +33,7 @@ def get_data_from_sheet(wks, project_id):
 
 def complete_document(data, project_id):
     data = {f'<<{i[0]}>>': i[1] for i in enumerate(data)}
+    data['<<project>>'] = project_id
     document = Document('./template.docx')
     for paragraph in document.paragraphs:
         for key, value in data.items():
@@ -45,8 +46,9 @@ def complete_document(data, project_id):
                 paragraph.text = value
 
     clean_document = clear_from_tags(document)
-    clean_document.save(f'{project_id}.docx')
-    print(f'saved file {project_id}.docx')
+    file_name = f'{project_id}_Аудит.docx'
+    clean_document.save(file_name)
+    print(f'saved file {file_name}')
 
 
 def get_image_from_drive(link):
