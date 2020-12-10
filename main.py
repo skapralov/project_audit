@@ -33,10 +33,13 @@ def get_data_from_sheet(wks, project_id):
 
 def complete_document(data, project_id):
     data = {f'<<{i[0]}>>': i[1] for i in enumerate(data)}
-    data['<<project>>'] = project_id
     document = Document('./template.docx')
+    document = set_title_project(document, project_id)
     for paragraph in document.paragraphs:
         for key, value in data.items():
+            if not str(value).strip():
+                continue
+
             if key in paragraph.text and '<<image>>' in paragraph.text:
                 paragraph.text = None
                 image = get_image_from_lightshot(value)
@@ -49,6 +52,14 @@ def complete_document(data, project_id):
     file_name = f'{project_id}_Аудит.docx'
     clean_document.save(file_name)
     print(f'saved file {file_name}')
+
+
+def set_title_project(document, project_id):
+    for paragraph in document.paragraphs:
+        for run in paragraph.runs:
+            if '<<project>>' in run.text:
+                run.text = project_id
+                return document
 
 
 def get_image_from_drive(link):
@@ -101,4 +112,4 @@ if __name__ == '__main__':
         main()
     except Exception as error:
         print(error)
-    time.sleep(100)
+        time.sleep(999)
